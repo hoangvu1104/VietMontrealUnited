@@ -92,3 +92,9 @@ Thêm repository variable GODADDY_DEPLOY_ENABLED=true sau khi xác nhận đủ 
 Workflow kiểm tra cú pháp PHP và danh sách tools/deploy-manifest.json trước khi upload SFTP. Chỉ 34 file ứng dụng trong manifest được gửi; config/database.local.php, ảnh upload, SQL, backup và dữ liệu không được gửi hoặc xóa. Hosting phải có sẵn database.local.php. Không chạy migration hay import SQL. File bị xóa khỏi source không tự xóa trên hosting. Upload không atomic; nếu lỗi giữa chừng, kiểm tra log và chạy lại workflow sau khi xử lý lỗi.
 
 Kiểm tra local: pwsh -File tools/deploy-sftp.ps1 -DryRun.
+
+## 2026-10-17 — FTPS tự động đã cấu hình
+
+Workflow hiện dùng explicit FTPS port 21 qua tools/deploy-ftps.py (thư viện chuẩn Python), thay cho SSH/SFTP. Khi push main hoặc chạy workflow thủ công, job kiểm tra PHP và manifest rồi upload 34 file. Production environment chứa FTP_HOST, FTP_PORT, FTP_USER, FTP_PASSWORD, FTP_ROOT; repository variable GODADDY_DEPLOY_ENABLED=true đã bật. Mật khẩu không nằm trong source.
+
+ftp.vietcanadianlive.com hiện không có DNS. Đã xác minh hostname máy chủ từ redirect cPanel và đăng nhập FTPS thành công với kiểm tra chứng chỉ đầy đủ: p3plzcpnl503791.prod.phx3.secureserver.net. FTP root / là thư mục VMU. Không thêm /vmu vào đường dẫn FTP. Script yêu cầu app/config/public và config/database.local.php tồn tại trước khi upload. Không xóa file server, không import SQL, không thay ảnh upload hay cấu hình database riêng. Thêm file ứng dụng mới thì cập nhật tools/deploy-manifest.json.

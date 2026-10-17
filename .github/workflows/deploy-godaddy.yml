@@ -1,4 +1,4 @@
-name: Deploy to GoDaddy via SFTP
+name: Deploy to GoDaddy via FTPS
 
 on:
   push:
@@ -28,39 +28,12 @@ jobs:
             php -l "$file"
           done < <(git ls-files -z '*.php')
       - name: Validate deployment file list
-        shell: pwsh
-        run: ./tools/deploy-sftp.ps1 -DryRun
-      - name: Prepare SSH credentials
-        shell: bash
+        run: python3 tools/deploy-ftps.py --dry-run
+      - name: Upload application files via explicit FTPS
         env:
-          DEPLOY_KEY: ${{ secrets.SFTP_PRIVATE_KEY }}
-          HOST_KEYS: ${{ secrets.SFTP_KNOWN_HOSTS }}
-        run: |
-          set -euo pipefail
-          test -n "$DEPLOY_KEY" && test -n "$HOST_KEYS"
-          umask 077
-          mkdir -p "$RUNNER_TEMP/godaddy-ssh"
-          printf '%s\n' "$DEPLOY_KEY" | tr -d '\r' > "$RUNNER_TEMP/godaddy-ssh/id_deploy"
-          printf '%s\n' "$HOST_KEYS" | tr -d '\r' > "$RUNNER_TEMP/godaddy-ssh/known_hosts"
-          if ! ssh-keygen -y -P '' -f "$RUNNER_TEMP/godaddy-ssh/id_deploy" > /dev/null 2>&1; then
-            echo '::error::SFTP_PRIVATE_KEY must contain the complete, unencrypted private key, including BEGIN/END lines and real newlines. Use the private key, not its .pub file.'
-            exit 1
-          fi
-      - name: Upload application files
-        shell: pwsh
-        env:
-          SFTP_HOST: ${{ secrets.SFTP_HOST }}
-          SFTP_USER: ${{ secrets.SFTP_USER }}
-          SFTP_PUBLIC_ROOT: ${{ secrets.SFTP_PUBLIC_ROOT }}
-        run: |
-          ./tools/deploy-sftp.ps1 -IdentityFile "$env:RUNNER_TEMP/godaddy-ssh/id_deploy" -KnownHostsFile "$env:RUNNER_TEMP/godaddy-ssh/known_hosts"
-      - name: Remove SSH credentials
-        if: always()
-        shell: pwsh
-        run: |
-          $credentialDirectory = Join-Path $env:RUNNER_TEMP 'godaddy-ssh'
-          if (Test-Path -LiteralPath $credentialDirectory) {
-            Remove-Item -LiteralPath $credentialDirectory -Recurse -Force
-          }
-
-
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_PORT: ${{ secrets.FTP_PORT }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_ROOT: ${{ secrets.FTP_ROOT }}
+        run: python3 tools/deploy-ftps.py
