@@ -1,0 +1,6 @@
+Options -Indexes
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^(?:app|config|database|scripts|tests|var)(?:/|$) - [F,L]
+RewriteRule ^(?:README\.md|\.git|\.env) - [F,L]
+</IfModule>

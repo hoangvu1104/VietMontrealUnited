@@ -1,0 +1,11 @@
+<?php require_once __DIR__.'/components.php'; $next=next_match(); $last=last_match(); ?>
+<section class="club-banner"><div><span class="eyebrow">VIET MONTREAL UNITED</span><h2><?= e(club_slogan()) ?></h2><a href="<?= url('players') ?>">Meet the squad <span>↗</span></a></div><div class="pitch-art" aria-hidden="true"><div class="pitch-line"></div><div class="pitch-circle"></div></div><img class="banner-logo" src="assets/images/club-logo.jpg" alt="Viet Montreal United Football Club" width="180" height="180"><span class="banner-index">EST. 2022 / MONTRÉAL</span></section>
+<?php venue_card(); ?>
+<div class="section-heading season-heading"><h2>Season at a glance</h2><span class="muted">All completed matches</span></div>
+<?php metric_cards(); ?>
+<?php if(is_admin()): $warnings=mismatches(); ?><div class="admin-summary"><span><strong><?= e(one('SELECT COUNT(*) AS n FROM players WHERE is_active=1')['n']) ?></strong> active players</span><span><strong><?= count($warnings) ?></strong> score discrepancies</span><a href="<?= url('admin-attendance') ?>">Manage attendance ↗</a></div><?php foreach($warnings as $w): ?><div class="alert alert-warning">⚠ <?= e($w['opponent_name']) ?>: cầu thủ khai báo <?= e($w['declared_goals']) ?> bàn, kết quả đội <?= e($w['our_score']) ?> bàn. <a href="<?= url('admin-stats',['id'=>$w['id']]) ?>">Kiểm tra thống kê</a></div><?php endforeach; endif; ?>
+<div class="section-heading"><h2>On the pitch</h2><a href="<?= url('matches') ?>">Match calendar ↗</a></div>
+<div class="two-columns matches-grid"><?php if($last) match_card($last); else echo '<div class="panel empty">Chưa có trận đã hoàn thành.</div>'; if($next) match_card($next,true); else echo '<div class="panel empty">Chưa có trận sắp tới. Hẹn gặp bạn trên sân!</div>'; ?></div>
+<?php if($next) attendance_form($next); ?>
+<div class="two-columns leaders-grid"><?php leaderboard('goals','Top scorers','The players making the difference.'); leaderboard('assists','Top playmakers','The pass behind every great goal.'); ?></div>
+<div class="club-bottom"><span class="accent">✦</span><div><strong><?= e(club_slogan()) ?></strong><p>Follow the fixtures and be part of every matchday.</p></div><a href="<?= url('matches') ?>" class="btn btn-outline-dark">Explore matches ↗</a></div>

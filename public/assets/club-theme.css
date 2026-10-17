@@ -1,0 +1,91 @@
+/* Viet Montreal United: navy, vermilion and white from the supplied crest. */
+:root {
+  --club-navy: #073649;
+  --club-coral: #dc5743;
+  --club-coral-dark: #b83c2b;
+  --club-coral-pale: #fff1ed;
+  --ink: var(--club-navy);
+  --accent: var(--club-coral-dark);
+  --muted: #647780;
+  --line: #dfe7eb;
+  --bg: #f5f8fa;
+}
+body { color: var(--club-navy); }
+::selection { background: #ffd9cf; color: var(--club-navy); }
+.brand { gap: 10px; font-size: 11px; letter-spacing: .4px; }
+.brand-logo { width: 56px; height: 56px; object-fit: contain; flex-shrink: 0; }
+.brand small { font-size: 7px; letter-spacing: 1.2px; }
+.nav-item.active { background: var(--club-coral-pale); color: var(--club-coral-dark); box-shadow: inset 3px 0 var(--club-coral); }
+.nav-item:hover { background: #f1f5f7; }
+.nav-dot, .live-dot { background: var(--club-coral); }
+.title-dot, .accent, .metric-icon { color: var(--club-coral); }
+.page-heading .eyebrow, .section-heading > a, .squad-info small { color: var(--club-coral-dark); }
+.btn-dark { --bs-btn-active-bg: #052a39; --bs-btn-active-border-color: #052a39; background: var(--club-navy); border-color: var(--club-navy); color: #fff; }
+.btn-dark:hover { background: #12516a; border-color: #12516a; color: #fff; }
+.btn-club { background: var(--club-coral-dark); border-color: var(--club-coral-dark); color: #fff; }
+.btn-club:hover, .btn-club:active { background: #982f21; border-color: #982f21; color: #fff; }
+.btn-outline-dark:hover { background: var(--club-navy); color: #fff; border-color: var(--club-navy); }
+.btn:focus-visible, button:focus-visible, a:focus-visible { outline-color: var(--club-coral); }
+.form-control:focus, .form-select:focus { border-color: var(--club-coral); box-shadow: 0 0 0 .2rem #dc574324; }
+.form-check-input:checked { background-color: var(--club-coral-dark); border-color: var(--club-coral-dark); }
+.form-check-input:focus { border-color: var(--club-coral); box-shadow: 0 0 0 .2rem #dc574324; }
+.club-banner { background: var(--club-navy); border-bottom: 4px solid var(--club-coral); min-height: 265px; }
+.club-banner > div:first-child { position: relative; z-index: 2; max-width: 60%; }
+.club-banner .eyebrow { color: #ffb6a6; }
+.club-banner p, .banner-index { color: #d0e1e8; }
+.club-banner a { color: #ffd9cf; border-bottom-color: var(--club-coral); }
+.pitch-art, .pitch-art:before, .pitch-art:after, .pitch-line, .pitch-circle { border-color: #3d6879; }
+.pitch-art { opacity: .5; }
+.banner-logo { position: absolute; right: 9%; top: 50%; transform: translateY(-50%); width: 180px; height: 180px; object-fit: contain; padding: 10px; background: #fff; border-radius: 12px; box-shadow: 0 12px 30px #001c2a55; }
+.team-logo { width: 72px; height: 72px; object-fit: contain; background: #fff; border-radius: 6px; padding: 3px; }
+.next-card { background: #fff8f5; border-color: #f0d4cb; }
+.next-card .card-top .eyebrow { color: var(--club-coral-dark); }
+.next-card .score { color: var(--club-navy); }
+.next-card .attendance-strip, .next-card .card-link { border-color: #f0d4cb; }
+.attendance-strip span:first-child { color: var(--club-coral-dark); }
+.status-home, .status-active, .status-yes, .status-completed { color: var(--club-navy); background: #e8f1f5; }
+.rsvp { background: var(--club-coral-pale); border-color: #f0d4cb; }
+.rsvp .eyebrow { color: var(--club-coral-dark); }
+.rsvp p { color: #6c6260; }
+.leader-total { color: var(--club-coral-dark); background: var(--club-coral-pale); }
+.avatar, .leader-row:nth-child(3n) .avatar { background: #e3edf2; color: var(--club-navy); }
+.leader-row:nth-child(2n) .avatar { background: #fbe7e1; color: #a83f2f; }
+.squad-top, .squad-card:nth-child(3n+3) .squad-top { background: #e7f0f4; }
+.squad-card:nth-child(3n+2) .squad-top { background: #fbeee9; }
+.count-pill { background: var(--club-coral-pale); color: var(--club-coral-dark); }
+.profile-banner, .login-story { background: var(--club-navy); border-bottom: 4px solid var(--club-coral); }
+.login-story h2 span { color: #ffad9b; }
+.login-story p { color: #d0e1e8; }
+.login-logo { display: block; width: 96px; height: 96px; object-fit: contain; padding: 5px; background: #fff; border-radius: 8px; margin-top: 22px; }
+.profile-banner .eyebrow { color: #ffb6a6; }
+.alert-success { --bs-alert-color: #073649; --bs-alert-bg: #eaf3f7; --bs-alert-border-color: #c8dde7; }
+@media (max-width: 1150px) {
+  .brand { font-size: 9px; gap: 7px; }
+  .brand-logo { width: 47px; height: 47px; }
+  .brand small { font-size: 6px; }
+  .banner-logo { right: 6%; width: 155px; height: 155px; }
+}
+@media (max-width: 800px) {
+  .brand { font-size: 11px; }
+  .brand-logo { width: 56px; height: 56px; }
+  .brand small { font-size: 7px; }
+}
+@media (max-width: 580px) {
+  .club-banner { min-height: 255px; }
+  .club-banner > div:first-child { max-width: calc(100% - 93px); }
+  .club-banner h2 { font-size: 26px; }
+  .banner-logo { right: 17px; width: 90px; height: 90px; padding: 5px; border-radius: 7px; }
+  .team-logo { width: 65px; height: 65px; }
+  .club-banner .eyebrow { letter-spacing: 1px; }
+}
+
+/* Keep the club slogan legible across narrow cards and mobile screens. */
+.club-banner h2{font-size:clamp(24px,2.5vw,34px);line-height:1.3;max-width:590px;margin-bottom:20px}.login-story h2{font-size:clamp(26px,3vw,38px);line-height:1.3}.club-note{line-height:1.7}footer>span:last-child{max-width:55%;text-align:right}
+@media(max-width:580px){.club-banner>div:first-child{max-width:100%;padding-right:0}.club-banner h2{font-size:25px;max-width:100%}.club-banner{padding-bottom:124px}.banner-logo{top:auto;bottom:18px;right:22px;transform:none;width:86px;height:86px}footer>span:last-child{max-width:100%;text-align:left}}
+
+/* Keep the complete club name together at every sidebar width. */
+.brand{gap:8px}.brand-logo{width:48px;height:48px}.brand-name{display:block;white-space:nowrap;font-size:10.5px;letter-spacing:0;font-weight:800}.brand small{font-size:7px;letter-spacing:1.4px}
+
+img.avatar { object-fit: cover; flex-shrink: 0; }
+.account-photo { display: flex; align-items: center; gap: 16px; margin: 20px 0; }
+.account-photo .avatar { width: 96px; height: 96px; font-size: 28px; }

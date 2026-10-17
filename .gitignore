@@ -1,0 +1,23 @@
+/config/database.local.php
+/.vscode/sftp.json
+/public/uploads/*
+!/public/uploads/.htaccess
+/var/*
+!/var/.gitkeep
+
+# Private configuration, release bundles and local artifacts
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.ppk
+*.pfx
+*.zip
+*.log
+*.bak
+node_modules/
+/VMU-GoDaddy-*/
+/database/create-player-accounts.sql
+/scripts/generate-player-accounts-sql.php
+/tests/player-account-import.php

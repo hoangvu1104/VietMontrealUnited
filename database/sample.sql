@@ -1,0 +1,2 @@
+-- Sample data removed. Do not import demo data into the club database.
+-- For a new installation use scripts/install.php.
