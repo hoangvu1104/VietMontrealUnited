@@ -245,3 +245,10 @@ Theo tài khoản FTP được người dùng cung cấp, chuyển workflow từ
 - Tệp thay đổi: `app/actions.php`, `app/functions.php`, `app/views/admin-match-edit.php`, `app/views/match.php`, `public/uploads/.htaccess`, `README.md`, checkpoint này. Hai thay đổi có sẵn trong `app/views/layout.php` và `public/assets/club-theme.css` nằm ngoài phase.
 - Kết quả: 43 PHP lint PASS, 269 HTTP regression PASS trên database MariaDB test riêng, 30 kiểm tra quản lý trên Edge PASS, Apache local trả 403 cho tệp mô tả và 206 cho MP4, package check và FTPS dry-run 34 tệp PASS. PHP không có bước biên dịch Release. Log test nằm trong `var/highlight-management-test/`.
 - Git: trước phase `main` và `origin/main` cùng ở `86b74bb`. Commit tính năng dùng `[skip ci]` để tách push khỏi triển khai. GoDaddy vẫn chạy phiên bản `799014e`. Bước kế tiếp sau khi được duyệt là deploy workflow thủ công rồi thử sửa mô tả và xóa một clip mẫu trên hosting.
+
+## 2026-11-07 — Ẩn Match squad khi trận đã hoàn thành
+
+- Hoàn tất: trang chi tiết chỉ tải và hiển thị Match squad cùng bốn nhóm xác nhận khi trạng thái khác `Completed`. Trận `Completed` tiếp tục hiển thị tỉ số và mục highlight. Thay đổi ở `app/views/match.php` và checkpoint này. Không có migration.
+- Kiểm thử trên bản sao PHP/MariaDB độc lập: 269 hồi quy HTTP PASS. Bốn ca HTTP riêng xác minh Match squad và bốn nhóm ẩn ở Completed, hiện ở Upcoming, Postponed và Cancelled. Mục highlight vẫn hiện ở Completed. 43 tệp PHP lint PASS, FTPS dry-run 34 tệp PASS. PHP không có bước biên dịch Release.
+- Git trước phase: `main` và `origin/main` ở `83c0a29`. Commit dùng `[skip ci]`. Checkpoint deploy highlight đang chờ kiểm thử Admin cùng các thay đổi có sẵn trong `app/views/layout.php` và `public/assets/club-theme.css` nằm ngoài commit này.
+- Tiếp theo nếu được duyệt: deploy commit này qua workflow GoDaddy, kiểm tra trang Completed và một trận Upcoming trên hosting nếu có.
