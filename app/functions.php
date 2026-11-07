@@ -24,6 +24,52 @@ function date_input(string $key,bool $required=true): ?string {
 function next_match(): ?array { return one("SELECT * FROM matches WHERE status='Upcoming' AND TIMESTAMP(match_date,match_time)>? ORDER BY match_date,match_time,id LIMIT 1",[date('Y-m-d H:i:s')]); }
 function last_match(): ?array { return one("SELECT * FROM matches WHERE status='Completed' ORDER BY match_date DESC,match_time DESC,id DESC LIMIT 1"); }
 function match_by_id(int $id): array { return one('SELECT * FROM matches WHERE id=?',[$id]) ?? throw new DomainException('Không tìm thấy trận đấu.'); }
+function match_highlight_directory(int $matchId): string {
+    return 'uploads/highlights/'.$matchId;
+}
+function match_highlights(int $matchId): array {
+    $directory = match_highlight_directory($matchId);
+    $videos = [];
+    foreach (glob(__DIR__.'/../public/'.$directory.'/*.mp4') ?: [] as $file) {
+        $name = basename($file);
+        if (is_file($file) && preg_match('/^\d{14}-[a-f0-9]{32}\.mp4$/D', $name)) {
+            $videos[] = $directory.'/'.$name;
+        }
+    }
+    return $videos;
+}
+function upload_match_highlight(int $matchId): string {
+    $file = $_FILES['highlight'] ?? [];
+    $error = $file['error'] ?? UPLOAD_ERR_NO_FILE;
+    if ($error === UPLOAD_ERR_NO_FILE) {
+        throw new DomainException('Vui lòng chọn một video MP4.');
+    }
+    if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE || ($file['size'] ?? 0) > 50 * 1024 * 1024) {
+        throw new DomainException('Video vượt giới hạn tải lên. Hãy chọn MP4 tối đa 50 MB và trong giới hạn của máy chủ.');
+    }
+    if ($error !== UPLOAD_ERR_OK || !is_string($file['tmp_name'] ?? null) || !is_uploaded_file($file['tmp_name'])) {
+        throw new DomainException('Video chưa được tải lên hoàn chỉnh. Vui lòng thử lại.');
+    }
+    $name = $file['name'] ?? '';
+    $mime = new finfo(FILEINFO_MIME_TYPE);
+    if (!is_string($name) || strtolower(pathinfo($name, PATHINFO_EXTENSION)) !== 'mp4' || $mime->file($file['tmp_name']) !== 'video/mp4') {
+        throw new DomainException('Chỉ chấp nhận tệp video MP4 hợp lệ.');
+    }
+
+    $directory = __DIR__.'/../public/'.match_highlight_directory($matchId);
+    if (!is_dir($directory) && !@mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new DomainException('Không tạo được thư mục lưu video. Kiểm tra quyền ghi thư mục uploads.');
+    }
+    $destination = $directory.'/'.gmdate('YmdHis').'-'.bin2hex(random_bytes(16)).'.mp4';
+    $temporary = $destination.'.part';
+    if (!@move_uploaded_file($file['tmp_name'], $temporary) || !@rename($temporary, $destination)) {
+        if (is_file($temporary) && !@unlink($temporary)) {
+            error_log('Could not remove incomplete match highlight upload.');
+        }
+        throw new DomainException('Không lưu được video. Kiểm tra quyền ghi và dung lượng thư mục uploads.');
+    }
+    return $destination;
+}
 function attendance(int $match): array {
     return query("SELECT p.id,p.full_name,p.jersey_number,p.is_active,COALESCE(a.status,'NO_RESPONSE') AS response FROM players p LEFT JOIN match_availability a ON a.player_id=p.id AND a.match_id=? WHERE p.is_active=1 OR (a.id IS NOT NULL AND EXISTS (SELECT 1 FROM matches WHERE id=? AND status='Completed')) ORDER BY p.jersey_number,p.full_name",[$match,$match]);
 }

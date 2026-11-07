@@ -38,6 +38,12 @@ Private source, scripts, SQL, cấu hình và backup phải nằm ngoài web roo
 
 Cầu thủ đăng nhập → My account (bấm tên cuối menu) → chọn ảnh JPG/PNG/WebP tối đa 2 MB → Lưu ảnh đại diện. Ảnh hiển thị công khai trên hồ sơ/danh sách. Chỉ chính cầu thủ được thay ảnh. Với database cũ, chạy `php scripts/migrate-player-photos.php` trước khi cập nhật source; cài mới đã có cột ảnh. Xem hướng dẫn GoDaddy về quyền ghi uploads và giới hạn PHP.
 
+### Video highlight trận đấu
+
+Admin lưu trận ở trạng thái `Completed`, mở lại **Edit match** và tải từng clip ở mục **Video highlight**. Khách có thể phát video ngay trong trang chi tiết trận. Mỗi clip dùng định dạng MP4, tối đa 50 MB. Dùng video H.264 trong MP4 để tương thích với các trình duyệt phổ biến.
+
+PHP cần quyền ghi vào `public/uploads/`. Để hỗ trợ clip tới 50 MB, đặt `upload_max_filesize` tối thiểu `50M` và `post_max_size` lớn hơn, ví dụ `55M`, trong cấu hình PHP của máy chủ. Video nằm trong `public/uploads/highlights/` theo mã trận. Sao lưu thư mục này cùng database. Xóa trận trong Admin cũng xóa video của trận đó.
+
 ## Bản local để duyệt trước deploy
 
 Mở http://127.0.0.1:8780/. Tài khoản Admin và cầu thủ An Tran nằm trong `var/local-preview-accounts.txt`. Database riêng `vmu_preview` chạy tại 127.0.0.1:3312; không ảnh hưởng GoDaddy. Nếu đã tắt dịch vụ, chạy `./start-preview.ps1` từ PowerShell trong thư mục dự án. Tài khoản cầu thủ dùng thử chỉ có ở local, không được đưa vào SQL deploy.

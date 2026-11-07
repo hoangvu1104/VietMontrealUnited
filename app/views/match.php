@@ -1,6 +1,26 @@
 <?php require_once __DIR__.'/components.php'; $m=match_by_id((int)($_GET['id'] ?? 0)); $att=attendance((int)$m['id']); ?>
 <div class="match-detail-card"><?php match_card($m,$m['status']!=='Completed',true); ?></div>
 <div class="detail-meta"><?= badge($m['status']) ?> <span><?= e($m['match_date']) ?> · <?= e(substr($m['match_time'],0,5)) ?> · America/Toronto</span><?php if(is_admin()): ?><a href="<?= url('admin-match-edit',['id'=>$m['id']]) ?>">Edit match ↗</a><?php endif; ?></div>
+<?php if ($m['status'] === 'Completed'): $videos = match_highlights((int)$m['id']); ?>
+<section class="panel my-4" id="highlights">
+    <h2>Video highlight</h2>
+    <?php if (!$videos): ?>
+        <p class="muted mb-0">Trận đấu này chưa có video highlight.</p>
+    <?php else: ?>
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+            <?php foreach ($videos as $index => $video): ?>
+                <div class="col">
+                    <h3>Highlight <?= $index + 1 ?></h3>
+                    <video class="w-100" controls playsinline preload="none" aria-label="Highlight <?= $index + 1 ?>">
+                        <source src="<?= e($video) ?>" type="video/mp4">
+                        <a href="<?= e($video) ?>">Mở video highlight <?= $index + 1 ?></a>
+                    </video>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+</section>
+<?php endif; ?>
 <?php attendance_form($m); ?>
 <?php if($user && !is_admin() && $m['status']==='Completed' && one("SELECT id FROM match_availability WHERE match_id=? AND player_id=? AND status='YES'",[$m['id'],$user['player_id']])): $mine=one('SELECT * FROM player_match_stats WHERE match_id=? AND player_id=?',[$m['id'],$user['player_id']]); ?><section class="panel my-4"><h2>My match stats</h2><p class="muted">Nhập bàn thắng và kiến tạo của bạn sau trận đấu.</p><form method="post" class="inline-form"><?= csrf() ?><input type="hidden" name="action" value="stats"><input type="hidden" name="match_id" value="<?= e($m['id']) ?>"><?php field('Goals','goals',$mine['goals'] ?? 0,'number',true,'min="0" max="999"'); field('Assists','assists',$mine['assists'] ?? 0,'number',true,'min="0" max="999"'); ?><button class="btn btn-dark">Save my stats</button></form></section><?php endif; ?>
 <div class="section-heading"><h2>Match squad</h2><?php if(is_admin()): ?><a href="<?= url('admin-attendance',['id'=>$m['id']]) ?>">Manage attendance ↗</a><?php endif; ?></div>

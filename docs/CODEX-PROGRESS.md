@@ -218,3 +218,12 @@ Verification: PHP lint app/config/public PASS; SFTP dry-run PASS 34 file. Chưa 
 
 ## 2026-10-17 — Bật GitHub Actions explicit FTPS
 Theo tài khoản FTP được người dùng cung cấp, chuyển workflow từ SSH sang explicit FTPS cổng 21. tools/deploy-ftps.py dùng Python standard library, xác minh chứng chỉ TLS, upload allowlist 34 file và kiểm tra thư mục/cấu hình production trước khi ghi. GitHub production secrets đã cấu hình, GODADDY_DEPLOY_ENABLED=true. Host ftp.vietcanadianlive.com không có DNS; xác minh hostname GoDaddy qua redirect cPanel: p3plzcpnl503791.prod.phx3.secureserver.net. Login TLS và liệt kê root / thành công, có app/config/public/index.php. Không có mật khẩu trong commit. Dry-run 34 files PASS. Chưa chạy import/migration database.
+
+## 2026-11-07 — Upload và xem video highlight theo trận
+
+- Mục tiêu và trạng thái: hoàn tất mã nguồn và kiểm thử local. Admin tải từng clip MP4 sau khi lưu trận ở trạng thái Completed. Mỗi trận hỗ trợ nhiều clip, khách phát video trong trang chi tiết trận.
+- Luồng xử lý: POST qua CSRF và quyền Admin. Kiểm tra `matches.id` và `matches.status` bằng truy vấn có tham số, khóa hàng trong lúc công bố clip. Giới hạn 50 MB/clip và kiểm tra đuôi tệp, MIME phía máy chủ. Tệp có tên sinh tự động, lưu trong `public/uploads/highlights/<match_id>/`; xóa trận sẽ dọn các clip của trận đó. Dùng schema hiện có.
+- Tệp thay đổi: `app/actions.php`, `app/functions.php`, `app/views/admin-match-edit.php`, `app/views/match.php`, `public/index.php`, `public/uploads/.htaccess`, `README.md` và checkpoint này. Các thay đổi local có sẵn trong `app/views/layout.php` và `public/assets/club-theme.css` nằm ngoài commit.
+- Kiểm thử: 43 PHP lint PASS, 269 regression HTTP PASS trên MariaDB 10.4 với database test riêng, 17 kiểm tra upload/hiển thị/phát/xóa bằng Edge PASS, 3 kiểm tra giới hạn upload PASS, kiểm tra runtime bộ tệp theo manifest và FTPS dry-run 34 tệp PASS. PHP không có bước biên dịch Release. Log local nằm trong `var/highlight-verification/`.
+- Chưa kiểm tra quyền ghi và giới hạn PHP trên GoDaddy. PHP local dùng cấu hình riêng trong lúc test. Xem README để cấu hình máy chủ cho clip 50 MB.
+- Git: `main` và GitHub `main` cùng ở `634e48e` trước phase. Commit của checkpoint này dùng `[skip ci]` để tách push mã nguồn khỏi deploy GoDaddy. Sau khi người dùng duyệt triển khai, kiểm tra giới hạn PHP và quyền ghi thư mục uploads, chạy workflow deploy thủ công rồi thử một clip trên website.

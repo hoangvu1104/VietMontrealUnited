@@ -9,6 +9,9 @@ if (str_starts_with($page,'admin')) require_admin();
 if ($page==='account') require_login();
 $error=null;
 if ($_SERVER['REQUEST_METHOD']==='POST') {
+    if ($page === 'admin-match-edit' && ($_GET['upload'] ?? '') === 'highlight' && !$_POST && !$_FILES) {
+        abort_page(413, 'Máy chủ không nhận được tệp video. Hãy chọn MP4 nhỏ hơn và thử lại.');
+    }
     require __DIR__.'/../app/actions.php';
     try { handle_action(); }
     catch (DomainException $e) { if ($pdo->inTransaction()) $pdo->rollBack(); $error=$e->getMessage(); http_response_code(422); }

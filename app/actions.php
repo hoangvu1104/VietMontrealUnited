@@ -109,7 +109,49 @@ function handle_action(): void {
         else { run('INSERT INTO matches(match_date,match_time,opponent_name,opponent_logo,location,home_away,our_score,opponent_score,status) VALUES (?,?,?,?,?,?,?,?,?)',$values); $id=(int)$pdo->lastInsertId(); }
         flash('Đã lưu trận đấu.'); redirect('admin-matches');
     }
-    if ($action==='delete-match') { $id=number_input('id',2147483647); match_by_id($id); run('DELETE FROM matches WHERE id=?',[$id]); flash('Đã xóa trận đấu cùng dữ liệu tham gia và thống kê của trận.'); redirect('admin-matches'); }
+    if ($action === 'upload-highlight') {
+        $id = number_input('id', 2147483647);
+        $destination = null;
+        $pdo->beginTransaction();
+        try {
+            // Serialize publication with changes to the match status and deletion.
+            $match = one('SELECT status FROM matches WHERE id=? FOR UPDATE', [$id]);
+            if (!$match || $match['status'] !== 'Completed') {
+                throw new DomainException('Chỉ được thêm video highlight cho trận đã hoàn thành.');
+            }
+            $destination = upload_match_highlight($id);
+            $pdo->commit();
+        } catch (Throwable $error) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            if ($destination !== null && !@unlink($destination)) {
+                error_log('Could not roll back match highlight upload.');
+            }
+            throw $error;
+        }
+        flash('Đã thêm video highlight.');
+        redirect('admin-match-edit', ['id' => $id]);
+    }
+    if ($action === 'delete-match') {
+        $id = number_input('id', 2147483647);
+        match_by_id($id);
+        run('DELETE FROM matches WHERE id=?', [$id]);
+
+        $allRemoved = true;
+        foreach (match_highlights($id) as $video) {
+            if (!@unlink(__DIR__.'/../public/'.$video)) {
+                error_log('Could not remove video for deleted match '.$id.'.');
+                $allRemoved = false;
+            }
+        }
+        $directory = __DIR__.'/../public/'.match_highlight_directory($id);
+        if ($allRemoved && is_dir($directory) && !@rmdir($directory)) {
+            error_log('Could not remove highlight directory for deleted match '.$id.'.');
+        }
+        flash($allRemoved
+            ? 'Đã xóa trận đấu cùng dữ liệu tham gia và thống kê của trận.'
+            : 'Đã xóa trận đấu. Một số video cần được dọn trong thư mục uploads.');
+        redirect('admin-matches');
+    }
     if ($action==='create-user') {
         $pid=number_input('player_id',2147483647);
         if (!one('SELECT id FROM players WHERE id=? AND is_active=1',[$pid])) throw new DomainException('Chỉ tạo tài khoản cho cầu thủ Active.');
