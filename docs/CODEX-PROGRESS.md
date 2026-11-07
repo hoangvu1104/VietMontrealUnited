@@ -252,3 +252,10 @@ Theo tài khoản FTP được người dùng cung cấp, chuyển workflow từ
 - Kiểm thử trên bản sao PHP/MariaDB độc lập: 269 hồi quy HTTP PASS. Bốn ca HTTP riêng xác minh Match squad và bốn nhóm ẩn ở Completed, hiện ở Upcoming, Postponed và Cancelled. Mục highlight vẫn hiện ở Completed. 43 tệp PHP lint PASS, FTPS dry-run 34 tệp PASS. PHP không có bước biên dịch Release.
 - Git trước phase: `main` và `origin/main` ở `83c0a29`. Commit dùng `[skip ci]`. Checkpoint deploy highlight đang chờ kiểm thử Admin cùng các thay đổi có sẵn trong `app/views/layout.php` và `public/assets/club-theme.css` nằm ngoài commit này.
 - Tiếp theo nếu được duyệt: deploy commit này qua workflow GoDaddy, kiểm tra trang Completed và một trận Upcoming trên hosting nếu có.
+
+## 2026-11-07 — Triển khai ẩn Match squad lên GoDaddy
+
+- Đã triển khai commit `c85674882317d62d3b39e8856f3a71bf06901f91` qua GitHub Actions run `42418461889`. PHP lint, kiểm tra allowlist và upload FTPS đều PASS. Tệp `app/views/match.php` trên hosting khớp từng byte với commit.
+- Smoke test công khai trên cả hai trận Completed trả HTTP 200. Trận ID 2 hiển thị tỉ số 3–6 và ba clip. Các URL MP4 trả HTTP 206 với kiểu `video/mp4` khi kiểm tra range. Trận ID 1 hiển thị tỉ số 0–6 và mục highlight ở trạng thái chưa có clip. Cả hai trang đều ẩn Match squad và bốn nhóm xác nhận.
+- Chỉ checkpoint này thay đổi trong phase. Git main trước phase ở `c856748`. Commit tài liệu dùng `[skip ci]`. Checkpoint kiểm thử Admin của phase trước và các thay đổi local trong layout, CSS nằm ngoài commit tài liệu.
+- Đã hoàn tất kiểm tra được yêu cầu. Không có bước tiếp theo cần thiết cho thay đổi hiển thị này.
