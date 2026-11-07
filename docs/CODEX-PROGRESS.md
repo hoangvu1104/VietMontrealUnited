@@ -227,3 +227,13 @@ Theo tài khoản FTP được người dùng cung cấp, chuyển workflow từ
 - Kiểm thử: 43 PHP lint PASS, 269 regression HTTP PASS trên MariaDB 10.4 với database test riêng, 17 kiểm tra upload/hiển thị/phát/xóa bằng Edge PASS, 3 kiểm tra giới hạn upload PASS, kiểm tra runtime bộ tệp theo manifest và FTPS dry-run 34 tệp PASS. PHP không có bước biên dịch Release. Log local nằm trong `var/highlight-verification/`.
 - Chưa kiểm tra quyền ghi và giới hạn PHP trên GoDaddy. PHP local dùng cấu hình riêng trong lúc test. Xem README để cấu hình máy chủ cho clip 50 MB.
 - Git: `main` và GitHub `main` cùng ở `634e48e` trước phase. Commit của checkpoint này dùng `[skip ci]` để tách push mã nguồn khỏi deploy GoDaddy. Sau khi người dùng duyệt triển khai, kiểm tra giới hạn PHP và quyền ghi thư mục uploads, chạy workflow deploy thủ công rồi thử một clip trên website.
+
+## 2026-11-07 — Deploy highlight lên GoDaddy
+
+- Mục tiêu: triển khai đúng commit `799014e`, xác minh giới hạn tải lên, quyền ghi và phát video với khách.
+- GitHub Actions `workflow_dispatch` run `42393833212` hoàn tất thành công trên `main` cho SHA `799014e2dbab97a6286b6c1a982fdf87378a78eb`. PHP lint, kiểm tra allowlist và upload FTPS đều PASS.
+- Production smoke: Match Centre và chi tiết trận Completed trả HTTP 200, hiển thị mục highlight mới. Sáu tệp PHP và cấu hình liên quan trùng từng byte với commit qua FTPS.
+- Người dùng đăng nhập Admin trong Edge kiểm thử. Trận Completed tạm dùng MP4 tổng hợp 6.795 byte. Upload trả HTTP 302, PHP ghi được vào `public/uploads/highlights/`, khách không đăng nhập nhận `video/mp4` và HTTP 206 cho yêu cầu đọc theo byte. Edge giải mã và thời gian phát tăng. Sau khi xóa trận tạm, cả trang trận lẫn URL clip trả HTTP 404.
+- Giới hạn hiệu dụng: MP4 50 MiB trả HTTP 413. PHP ini tại root ứng dụng và `public/` không đọc được qua FTPS, hai tệp `.htaccess` không khai báo giới hạn và log kiểm tra không có chẩn đoán tương ứng. Thử chỉ header cho request lớn nhận HTTP 100, chưa phân biệt được giới hạn PHP và lớp hosting xử lý request. Giá trị `upload_max_filesize` và `post_max_size` chính xác chưa xác nhận. Cấu hình hosting được giữ nguyên trong lượt kiểm tra.
+- Tệp Git của phase: chỉ checkpoint này. Commit tài liệu dùng `[skip ci]`. Hai thay đổi local có sẵn ở `app/views/layout.php` và `public/assets/club-theme.css` nằm ngoài phase. Không có bước build Release cho PHP. Không chạy lại bộ hồi quy local trong phase triển khai. Workflow lint, kiểm tra allowlist, deploy và smoke thực tế đã chạy.
+- Bước kế tiếp nếu cần tải đủ 50 MiB: đọc giá trị PHP hiệu dụng và giới hạn request trên cPanel, xác định nguồn HTTP 413, sau đó thực hiện cấu hình trong phạm vi được duyệt và thử lại.
