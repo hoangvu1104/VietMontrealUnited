@@ -27,18 +27,52 @@ function match_by_id(int $id): array { return one('SELECT * FROM matches WHERE i
 function match_highlight_directory(int $matchId): string {
     return 'uploads/highlights/'.$matchId;
 }
+const MATCH_HIGHLIGHT_NAME_PATTERN = '/^\d{14}-[a-f0-9]{32}\.mp4$/D';
+const MATCH_HIGHLIGHT_DESCRIPTION_LIMIT = 500;
+
 function match_highlights(int $matchId): array {
     $directory = match_highlight_directory($matchId);
     $videos = [];
     foreach (glob(__DIR__.'/../public/'.$directory.'/*.mp4') ?: [] as $file) {
         $name = basename($file);
-        if (is_file($file) && preg_match('/^\d{14}-[a-f0-9]{32}\.mp4$/D', $name)) {
+        if (is_file($file) && preg_match(MATCH_HIGHLIGHT_NAME_PATTERN, $name)) {
             $videos[] = $directory.'/'.$name;
         }
     }
     return $videos;
 }
-function upload_match_highlight(int $matchId): string {
+function match_highlight_description(string $video): string {
+    $file = __DIR__.'/../public/'.$video.'.description';
+    if (!is_file($file)) {
+        return '';
+    }
+    $description = @file_get_contents($file);
+    if ($description === false) {
+        if (is_file($file)) error_log('Could not read match highlight description.');
+        return '';
+    }
+    return $description;
+}
+function save_match_highlight_description(string $videoFile, string $description): void {
+    $file = $videoFile.'.description';
+    $temporary = $file.'.part';
+    // The match row lock serializes writes. Rename publishes the complete text at once.
+    if (@file_put_contents($temporary, $description) !== strlen($description) || !@rename($temporary, $file)) {
+        if (is_file($temporary) && !@unlink($temporary)) {
+            error_log('Could not remove incomplete match highlight description.');
+        }
+        throw new DomainException('Không lưu được mô tả video. Vui lòng thử lại.');
+    }
+}
+function remove_match_highlight_description(string $videoFile): bool {
+    $file = $videoFile.'.description';
+    if (is_file($file) && !@unlink($file)) {
+        error_log('Could not remove match highlight description.');
+        return false;
+    }
+    return true;
+}
+function upload_match_highlight(int $matchId, string $description = ''): string {
     $file = $_FILES['highlight'] ?? [];
     $error = $file['error'] ?? UPLOAD_ERR_NO_FILE;
     if ($error === UPLOAD_ERR_NO_FILE) {
@@ -62,11 +96,20 @@ function upload_match_highlight(int $matchId): string {
     }
     $destination = $directory.'/'.gmdate('YmdHis').'-'.bin2hex(random_bytes(16)).'.mp4';
     $temporary = $destination.'.part';
-    if (!@move_uploaded_file($file['tmp_name'], $temporary) || !@rename($temporary, $destination)) {
+    try {
+        if (!@move_uploaded_file($file['tmp_name'], $temporary)) {
+            throw new DomainException('Không lưu được video. Kiểm tra quyền ghi và dung lượng thư mục uploads.');
+        }
+        if ($description !== '') save_match_highlight_description($destination, $description);
+        if (!@rename($temporary, $destination)) {
+            throw new DomainException('Không lưu được video. Kiểm tra quyền ghi và dung lượng thư mục uploads.');
+        }
+    } catch (Throwable $error) {
+        remove_match_highlight_description($destination);
         if (is_file($temporary) && !@unlink($temporary)) {
             error_log('Could not remove incomplete match highlight upload.');
         }
-        throw new DomainException('Không lưu được video. Kiểm tra quyền ghi và dung lượng thư mục uploads.');
+        throw $error;
     }
     return $destination;
 }

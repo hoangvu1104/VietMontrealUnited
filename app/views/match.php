@@ -8,13 +8,16 @@
         <p class="muted mb-0">Trận đấu này chưa có video highlight.</p>
     <?php else: ?>
         <div class="row row-cols-1 row-cols-md-2 g-3">
-            <?php foreach ($videos as $index => $video): ?>
+            <?php foreach ($videos as $index => $video): $description = match_highlight_description($video); ?>
                 <div class="col">
                     <h3>Highlight <?= $index + 1 ?></h3>
                     <video class="w-100" controls playsinline preload="none" aria-label="Highlight <?= $index + 1 ?>">
                         <source src="<?= e($video) ?>" type="video/mp4">
                         <a href="<?= e($video) ?>">Mở video highlight <?= $index + 1 ?></a>
                     </video>
+                    <?php if ($description !== ''): ?>
+                        <p class="mt-2 text-break"><?= nl2br(e($description)) ?></p>
+                    <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>

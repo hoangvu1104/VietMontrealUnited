@@ -109,26 +109,64 @@ function handle_action(): void {
         else { run('INSERT INTO matches(match_date,match_time,opponent_name,opponent_logo,location,home_away,our_score,opponent_score,status) VALUES (?,?,?,?,?,?,?,?,?)',$values); $id=(int)$pdo->lastInsertId(); }
         flash('Đã lưu trận đấu.'); redirect('admin-matches');
     }
-    if ($action === 'upload-highlight') {
+    if (in_array($action, ['upload-highlight', 'update-highlight', 'delete-highlight'], true)) {
         $id = number_input('id', 2147483647);
-        $destination = null;
+        $description = '';
+        if ($action !== 'delete-highlight') {
+            $input = $_POST['description'] ?? ($action === 'upload-highlight' ? '' : null);
+            if (!is_string($input) || !mb_check_encoding($input, 'UTF-8') ||
+                mb_strlen(trim($input), 'UTF-8') > MATCH_HIGHLIGHT_DESCRIPTION_LIMIT) {
+                throw new DomainException('Mô tả video cần là văn bản tối đa '.MATCH_HIGHLIGHT_DESCRIPTION_LIMIT.' ký tự.');
+            }
+            $description = trim($input);
+        }
+
+        $uploadedFile = null;
         $pdo->beginTransaction();
         try {
-            // Serialize publication with changes to the match status and deletion.
+            // Serialize highlight changes with other edits and deletion of the match.
             $match = one('SELECT status FROM matches WHERE id=? FOR UPDATE', [$id]);
-            if (!$match || $match['status'] !== 'Completed') {
-                throw new DomainException('Chỉ được thêm video highlight cho trận đã hoàn thành.');
+            if (!$match) {
+                throw new DomainException('Không tìm thấy trận đấu.');
             }
-            $destination = upload_match_highlight($id);
+            if ($action === 'upload-highlight') {
+                if ($match['status'] !== 'Completed') {
+                    throw new DomainException('Chỉ được thêm video highlight cho trận đã hoàn thành.');
+                }
+                $uploadedFile = upload_match_highlight($id, $description);
+                $message = 'Đã thêm video highlight.';
+            } else {
+                $name = text_input('video', 51);
+                if (!preg_match(MATCH_HIGHLIGHT_NAME_PATTERN, $name)) {
+                    throw new DomainException('Video highlight không hợp lệ.');
+                }
+                $videoFile = __DIR__.'/../public/'.match_highlight_directory($id).'/'.$name;
+                if (!is_file($videoFile)) {
+                    throw new DomainException('Không tìm thấy video highlight của trận này.');
+                }
+
+                if ($action === 'update-highlight') {
+                    save_match_highlight_description($videoFile, $description);
+                    $message = 'Đã lưu mô tả video.';
+                } else {
+                    if (!@unlink($videoFile)) {
+                        throw new DomainException('Không xóa được video. Vui lòng thử lại.');
+                    }
+                    $message = remove_match_highlight_description($videoFile)
+                        ? 'Đã xóa video highlight.'
+                        : 'Đã xóa video highlight. Cần dọn tệp mô tả trong thư mục uploads.';
+                }
+            }
             $pdo->commit();
         } catch (Throwable $error) {
-            if ($pdo->inTransaction()) $pdo->rollBack();
-            if ($destination !== null && !@unlink($destination)) {
-                error_log('Could not roll back match highlight upload.');
+            if ($uploadedFile !== null) {
+                if (!@unlink($uploadedFile)) error_log('Could not roll back match highlight upload.');
+                remove_match_highlight_description($uploadedFile);
             }
+            if ($pdo->inTransaction()) $pdo->rollBack();
             throw $error;
         }
-        flash('Đã thêm video highlight.');
+        flash($message);
         redirect('admin-match-edit', ['id' => $id]);
     }
     if ($action === 'delete-match') {
@@ -138,8 +176,11 @@ function handle_action(): void {
 
         $allRemoved = true;
         foreach (match_highlights($id) as $video) {
-            if (!@unlink(__DIR__.'/../public/'.$video)) {
+            $videoFile = __DIR__.'/../public/'.$video;
+            if (!@unlink($videoFile)) {
                 error_log('Could not remove video for deleted match '.$id.'.');
+                $allRemoved = false;
+            } elseif (!remove_match_highlight_description($videoFile)) {
                 $allRemoved = false;
             }
         }

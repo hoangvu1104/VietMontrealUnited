@@ -42,6 +42,8 @@ Cầu thủ đăng nhập → My account (bấm tên cuối menu) → chọn ả
 
 Admin lưu trận ở trạng thái `Completed`, mở lại **Edit match** và tải từng clip ở mục **Video highlight**. Khách có thể phát video ngay trong trang chi tiết trận. Mỗi clip dùng định dạng MP4, tối đa 50 MB. Dùng video H.264 trong MP4 để tương thích với các trình duyệt phổ biến.
 
+Admin có thể nhập mô tả tối đa 500 ký tự khi tải clip. Trong **Video đã tải lên**, xem trước từng clip, sửa hoặc xóa nội dung trong ô mô tả rồi bấm **Lưu mô tả**, hoặc bấm **Xóa video** để gỡ riêng clip đó. Mô tả đã lưu xuất hiện dưới video ở trang chi tiết trận. Các clip cũ có thể được bổ sung mô tả tại đây.
+
 PHP cần quyền ghi vào `public/uploads/`. Để hỗ trợ clip tới 50 MB, đặt `upload_max_filesize` tối thiểu `50M` và `post_max_size` lớn hơn, ví dụ `55M`, trong cấu hình PHP của máy chủ. Video nằm trong `public/uploads/highlights/` theo mã trận. Sao lưu thư mục này cùng database. Xóa trận trong Admin cũng xóa video của trận đó.
 
 ## Bản local để duyệt trước deploy
